@@ -1,0 +1,13 @@
+<div id="divConfirmRedirectModal" role="dialog" aria-labelledby="pConfirmRedirect" class="modal queueElement" data-bind="visible: showConfirmRedirectDialog()" style="">
+    <div id="divConfirmRedirectModal_Content" class="modal-content">
+        <div class="modal-body">
+            <p id="h2ConfirmRedirect">Su turno comenzó a las</p>
+            <p id="pConfirmRedirectTime" data-bind="{visible:ticket.windowStartTime()}" style="">
+                <span data-bind="{text:ticket.windowStartTime()}">12:35</span>
+                <span data-bind="{text:ticket.timeZonePostfix()}"></span>
+            </p>
+            <p id="pConfirmRedirect">Haz click en entrar para acceder al sitio</p>
+            <button id="buttonConfirmRedirect" type="button" class="btn" data-bind="click: setActiveClient"><span class="l">Entrar</span><span class="r">&nbsp;</span></button>
+        </div>
+    </div>
+</div>

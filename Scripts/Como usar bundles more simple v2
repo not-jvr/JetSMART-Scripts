@@ -1,0 +1,12 @@
+Para usar los menos tags posibles y que hacer los bundles mas simples, guiarse por lo de abajo.
+
+ACTIVADO
+
+JA - Bundles More Simple v2 ---> Deja en gris el ligero, oculta los extras q no contiene, oculta el "por tramo, por pasajero", elimina el titulo y elimina el espacio extra de los bundles.
+JA - Price bundles ---> es el +0 y cambia el precio del smart y full
+
+DESACTIVADO
+
+JA - Desc Bundles  ---> Etiqueta ROJA descuentos en bundles
+JA - Multiple CSS Bundle Changes ---> Edita los tamaños de los bundles, opaca el ligero con grises (hace q el ligero sea el mas chico, smart mediano y full mas grande) y modifica tamaño de fuente de precio del bundle y el tramo x pasajero
+JA - Bundle Seats Left ---> Indica al final del bundle cuantos quedan disponibles
