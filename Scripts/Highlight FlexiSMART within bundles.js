@@ -15,6 +15,17 @@ var newNameFlexi = setInterval(function () {
         .selected-bundle .ssr-line-name .extraFlexi {
             font-size: 13px;
         }
+
+        @media (max-width: 767px) {
+
+            .ssr-line-name .extraFlexi {
+                font-size: 11px;
+            }
+
+            .selected-bundle .ssr-line-name .extraFlexi {
+                font-size: 11px;
+            }
+        }
     `;
         var head = document.head || document.getElementsByTagName('head')[0];
         var style = document.createElement('style');
