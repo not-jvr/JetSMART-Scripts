@@ -14,4 +14,6 @@ Este repositorio incluye varios scripts en JavaScript utilizados para el seguimi
 ## Tecnologías Usadas
 
 - JavaScript
+- HTML
+- CSS
 - Tealium
