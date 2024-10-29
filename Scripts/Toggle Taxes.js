@@ -481,6 +481,7 @@ var toggleTaxes = setInterval(function () {
                 text2 = 'Vamos!';
                 break;
         }
+        
 
         if (document.querySelector('.toggle-label') && !document.querySelector('.tooltip-container') && firstChange == 1) {
             var tooltipHTML = `
