@@ -1,5 +1,5 @@
 var fix3739 = setInterval(function () {
-    if (typeof bookingData === "undefined" || window.location.pathname !== '/V2Checkin/AditionalInfo') return;
+    if (typeof bookingData === "undefined" || window.location.pathname !== '/V2Checkin/AdditionalInfo') return;
     clearInterval(fix3739);
 
     var culture = bookingData.Culture;
@@ -25,6 +25,7 @@ var fix3739 = setInterval(function () {
         });
     }
 
+    console.log("asdasa")
     changeTextButton();
 
 }, 600);
