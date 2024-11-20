@@ -172,6 +172,18 @@ var toggleTaxesv2 = setInterval(function () {
             margin-bottom: 0px;
         }
 
+        [data-test-id="bundle-selected-price-currency-sign--j|0"], [data-test-id="bundle-selected-price-currency-sign--j|1"] {
+            display: none;
+        }
+
+        .selected-flight .toggle-price-label {
+            margin-top: -8px;
+        }
+
+        .selected-flight [data-test-value="Simple"] .toggle-price-label, .selected-flight [data-test-value="Full"] .toggle-price-label {
+            color: #fff;
+        }
+
         @media (max-width: 767px) {
 
             .tooltip-container {
@@ -184,6 +196,33 @@ var toggleTaxesv2 = setInterval(function () {
 
             .toggle-price-label {
                 font-size: 12px;
+            }
+
+            .selected-bundle-container  .toggle-price-label {
+                margin-top: 0;
+                position: relative;
+                bottom: -19px;
+                left: 70%;
+            }
+
+            .selected-bundle-container .hidden-sm-up.relative.flex.items-center.justify-between {
+                padding-bottom: 0;
+            }
+        }
+
+        @media (min-width: 768px) and (max-width: 1200px) {
+
+            .selected-bundle-container [data-test-id*="bundle-selected-header--j"] {
+                height: 40px;
+                padding-left: 0;
+            }
+
+            .toggle-price-label {
+                font-size: 12px;
+            }
+
+            .selected-bundle-container  .toggle-price-label {
+                margin-top: -12px;
             }
         }
 
@@ -273,6 +312,7 @@ var toggleTaxesv2 = setInterval(function () {
                     smartFeeWithTax: formatPriceWithCurrency(smartFeeWithTax, currency),
                     clubFeeWithTax: formatPriceWithCurrency(clubFeeWithTax, currency),
                     dataValue: dataValue,
+                    tax: difference,
                 });
             }
         });
@@ -281,6 +321,11 @@ var toggleTaxesv2 = setInterval(function () {
     }
 
     function addToggle() {
+
+        if (document.querySelector('.toggle-containerTax')) {
+            return;
+        }
+
         if (!document.querySelector('.toggle-containerTax') && document.querySelector('[data-test-id="flight-itinerary"]')) {
             let text = 'Ver precios con tasas';
             switch (culture) {
@@ -313,6 +358,7 @@ var toggleTaxesv2 = setInterval(function () {
                 }
 
                 updateFlightPrices(e.target.checked);
+                updateFlightPrices2(e.target.checked);
             });
         }
     }
@@ -364,13 +410,92 @@ var toggleTaxesv2 = setInterval(function () {
                     }
 
                     priceLabelElement.textContent = priceLabel;
-                } else {
-                    console.log("No se encontró el elemento para el vuelo:", data.flightNumber, "y tipo de viaje:", data.type);
                 }
             });
         }
     }
 
+    function updateFlightPrices2() {
+        const toggle = document.querySelector(".toggle-containerTax #toggle");
+        if (toggle) {
+            let text = 'Precio sin tasas';
+            let text2 = 'Precio Total';
+    
+            switch (culture) {
+                case 'en-US':
+                    text = 'Price without taxes';
+                    text2 = 'Total Price';
+                    break;
+    
+                case 'pt-BR':
+                    text = 'Preço sem taxas';
+                    text2 = 'Preço Total';
+                    break;
+            }
+    
+            const updateFeeElement = (feeElement, mobileElement, tax) => {
+                if (!feeElement) return;
+    
+                let basePrice = parseFloat(feeElement.getAttribute('data-test-value').replace(',', '.'));  // Convertir a número con punto
+    
+                let finalPrice = basePrice;
+    
+                if (toggle.checked) {
+                    finalPrice += tax;
+                }
+    
+                feeElement.setAttribute('data-with-tax', toggle.checked ? 'yes' : 'no');
+    
+                // Aplicamos el precio final formateado en feeElement
+                feeElement.textContent = formatPriceWithCurrency(finalPrice, currency);
+    
+                let priceLabelElement = feeElement.nextElementSibling;
+                if (!priceLabelElement || !priceLabelElement.classList.contains('toggle-price-label')) {
+                    priceLabelElement = document.createElement('div');
+                    priceLabelElement.classList.add('toggle-price-label');
+                    feeElement.parentElement.appendChild(priceLabelElement);
+                }
+    
+                priceLabelElement.textContent = toggle.checked ? text2 : text;
+    
+                if (mobileElement) {
+                    mobileElement.textContent = formatPriceWithCurrency(finalPrice, currency);  // Insertamos el precio calculado
+                    // También puedes actualizar el texto si es necesario
+                    let mobilePriceLabel = mobileElement.nextElementSibling.nextElementSibling;
+                    if (!mobilePriceLabel || !mobilePriceLabel.classList.contains('toggle-price-label')) {
+                        mobilePriceLabel = document.createElement('div');
+                        mobilePriceLabel.classList.add('toggle-price-label');
+                        mobileElement.parentElement.appendChild(mobilePriceLabel);
+                    }
+    
+                    mobilePriceLabel.textContent = toggle.checked ? text2 : text;
+                }
+            };
+    
+            flightData.forEach(data => {
+                let smartFeeElement = document.querySelector(`[data-test-id="flight-fee-option--j|${data.type}-i|${data.flightNumber}"] [data-test-id="bundle-selected-price--j|${data.type}"]`);
+                let mobile = document.querySelector(`[data-test-id="flight-fee-option--j|${data.type}-i|${data.flightNumber}"] .whitespace-nowrap.text-be-blue`);
+    
+                if (!smartFeeElement) {
+                    var containerVuelo = document.querySelector(`[data-test-id="bundle-selected-per-leg--j|${data.type}"]`);
+                    if (containerVuelo) {
+                        var flightInfoElement = containerVuelo.querySelector(`[data-test-id="flight-flight-info-content--j|${data.type}-i|${data.flightNumber}"]`);
+                    }
+                    if (flightInfoElement) {
+                        smartFeeElement = containerVuelo.querySelector(`[data-test-id="bundle-selected-price--j|${data.type}"]`);
+                        mobile = containerVuelo.querySelector('.whitespace-nowrap.text-be-blue');
+                    }
+                }
+    
+                if (!smartFeeElement) {
+                    return;
+                }
+    
+                updateFeeElement(smartFeeElement, mobile, data.tax);
+            });
+        }
+    }
+    
     function changeCurrency() {
         currency2 = getCurrentCurrency();
         if (currency === currency2) {
@@ -388,6 +513,7 @@ var toggleTaxesv2 = setInterval(function () {
         flightOptionElements.forEach(function (flightOptionElement) {
             flightOptionElement.addEventListener('click', function () {
                 updateFlightPrices();
+                updateFlightPrices2();
             });
         });
     }
@@ -458,10 +584,25 @@ var toggleTaxesv2 = setInterval(function () {
         }
     }
 
+    function disabledCurrencyChange() {
+        const currencyElements = document.querySelectorAll('[data-test-id="sidebar-total-currency"]');
+        const selectedFlightElement = document.querySelector('.selected-flight.show-offers');
+        
+        currencyElements.forEach(currencyElement => {
+            if (selectedFlightElement) {
+                currencyElement.classList.add('disabled');
+            } else {
+                currencyElement.classList.remove('disabled');
+            }
+        });
+    }
+
     function allFunctions() {
         addToggle();
         updateFlightPrices();
+        updateFlightPrices2();
         clickFiltros();
+        disabledCurrencyChange();
     }
 
     ///COOKIE SET//
@@ -490,10 +631,7 @@ var toggleTaxesv2 = setInterval(function () {
 
     // FIN COOKIE
 
-
-
-
-    if (role === 'WWW Anonymous' && culture !== 'es-CO') {
+    if (role === 'WWW Anonymous' && culture !== 'es-PE') {
         flightData = extractFlightData();
 
         //console.log(flightData);

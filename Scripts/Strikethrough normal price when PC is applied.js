@@ -7,6 +7,7 @@ var newPCPrice = setInterval(function () {
     var haveDiscountIda = false;
     var haveDiscountVuelta = false;
     var culture = bookingData.Culture;
+    var role = bookingData.Role;
 
     if (discountIDA && discountIDA > 0) {
         haveDiscountIda = true;
@@ -16,9 +17,14 @@ var newPCPrice = setInterval(function () {
         haveDiscountVuelta = true;
     }
 
-
     function addCSS() {
         var css = `
+        
+        .flight-option-order-container {
+            
+            display: none !important;
+        }
+        
     .text-new-ui-blue {
         display: flex;
         flex-direction: column;
@@ -96,7 +102,16 @@ var newPCPrice = setInterval(function () {
         }
 
         .precio-original {
-            font-size: 18px;
+            font-size: 16px;
+        }
+
+        #newIconoPC {
+            width: 20px;
+            height: 20px;
+        }
+
+        .precio-normal {
+            font-size: 9px;
         }
     
     }
@@ -122,7 +137,7 @@ var newPCPrice = setInterval(function () {
     function formatCurrencyValue(value, currency) {
         switch (currency) {
             case "CLP":
-                return "$ " + value.toLocaleString('es-CL', { minimumFractionDigits: 0 });
+                return "$ " + value.toLocaleString('es-CL', { maximumFractionDigits: 0 });
             case "BRL":
                 return "R$ " + value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             case "COP":
@@ -140,6 +155,20 @@ var newPCPrice = setInterval(function () {
         }
     }
 
+    function addIndex() {
+        document.querySelectorAll('[data-test-id="flight-options-list--j|0"] ac-animated-container').forEach((element, index) => {
+            if (!element.hasAttribute('book-id')) {
+                element.setAttribute('book-id', index);
+            }
+        });
+
+        document.querySelectorAll('[data-test-id="flight-options-list--j|1"] ac-animated-container').forEach((element, index) => {
+            if (!element.hasAttribute('book-id')) {
+                element.setAttribute('book-id', index);
+            }
+        });
+    }
+
     function updatePrices(currency) {
         if (currency) {
             var text1 = 'Precio normal';
@@ -155,7 +184,9 @@ var newPCPrice = setInterval(function () {
 
             if (haveDiscountIda) {
                 let priceElements = document.querySelectorAll('[data-test-id^="flight-smart-fee--j|0"] .text-new-ui-blue, [data-test-id^="flight-club-fee--j|0"] .font-bold');
-                priceElements.forEach((priceElement, index) => {
+                priceElements.forEach((priceElement) => {
+                    let bookId = priceElement.closest('[book-id]').getAttribute('book-id');
+                    let discountIDA2 = bookingData.AvailableOutboundJourneys[bookId].PromoCodeDiscountPercent;
                     let priceText = priceElement.textContent.trim();
 
                     if (!priceElement.id.includes('modificado')) {
@@ -167,9 +198,38 @@ var newPCPrice = setInterval(function () {
                             priceValue = parseFloat(priceText.replace(/[^0-9,-]+/g, '').replace(',', '.'));
                         }
 
-                        // Calcula el nuevo precio sumando el porcentaje de descuento al precio original
-                        let additionalAmount = (priceValue * discountIDA) / 100; // Calcula el monto adicional
-                        let newPriceValue = priceValue + additionalAmount; // Aplica el incremento del descuento
+                        let additionalAmount = (100 - discountIDA2) / 100;
+                        let newPriceValue = priceValue / additionalAmount;
+                        let formattedPrice = formatCurrencyValue(newPriceValue, currency);
+                        let originalFormattedPrice = formatCurrencyValue(priceValue, currency);
+
+                        priceElement.innerHTML = `
+                            <div class="precio-normal">${text1}&nbsp;<span style="text-decoration: line-through;">${formattedPrice}</span></div>
+                            <div class="precio-original">${originalFormattedPrice} <img src="https://assets-us-01.kc-usercontent.com/b2956330-c34f-0064-2c6f-27bd5c0147fc/f5b249fe-122d-468c-bb23-b87819ce067d/%25descuento.png" id="newIconoPC"></div>
+                        `;
+                        priceElement.id = `modificado-${bookId}`;
+                    }
+                });
+            }
+
+            if (haveDiscountVuelta) {
+                let priceElements = document.querySelectorAll('[data-test-id^="flight-smart-fee--j|1"] .text-new-ui-blue, [data-test-id^="flight-club-fee--j|1"] .font-bold');
+                priceElements.forEach((priceElement) => {
+                    let bookId = priceElement.closest('[book-id]').getAttribute('book-id');
+                    let discountVUELTA2 = bookingData.AvailableReturnJourneys[bookId].PromoCodeDiscountPercent;
+                    let priceText = priceElement.textContent.trim();
+
+                    if (!priceElement.id.includes('modificado')) {
+                        let priceValue;
+
+                        if (currency === "BRL") {
+                            priceValue = parseFloat(priceText.replace(/R\$\s?/, '').replace(',', '.'));
+                        } else {
+                            priceValue = parseFloat(priceText.replace(/[^0-9,-]+/g, '').replace(',', '.'));
+                        }
+
+                        let additionalAmount = (100 - discountVUELTA2) / 100;
+                        let newPriceValue = priceValue / additionalAmount;
                         let formattedPrice = formatCurrencyValue(newPriceValue, currency);
                         let originalFormattedPrice = formatCurrencyValue(priceValue, currency);
 
@@ -177,53 +237,31 @@ var newPCPrice = setInterval(function () {
                         <div class="precio-normal">${text1}&nbsp;<span style="text-decoration: line-through;">${formattedPrice}</span></div>
                         <div class="precio-original">${originalFormattedPrice} <img src="https://assets-us-01.kc-usercontent.com/b2956330-c34f-0064-2c6f-27bd5c0147fc/f5b249fe-122d-468c-bb23-b87819ce067d/%25descuento.png" id="newIconoPC"></div>
                     `;
-                        priceElement.id = `modificado-${index}`;
-                    }
-                });
-            }
-
-
-            if (haveDiscountVuelta) {
-                let priceElements = document.querySelectorAll('[data-test-id^="flight-smart-fee--j|1"] .text-new-ui-blue, [data-test-id^="flight-club-fee--j|1"] .font-bold');
-                priceElements.forEach((priceElement, index) => {
-                    let priceText = priceElement.textContent.trim();
-
-                    if (!priceElement.id.includes('modificado')) {
-                        let priceValue;
-
-                        if (currency === "BRL") {
-                            priceValue = parseFloat(priceText.replace(/R\$\s?/, '').replace(',', '.'));
-                        } else {
-                            priceValue = parseFloat(priceText.replace(/[^0-9,-]+/g, '').replace(',', '.'));
-                        }
-
-                        // Calcula el nuevo precio sumando el porcentaje de descuento al precio original
-                        let additionalAmount = (priceValue * discountVUELTA) / 100; // Calcula el monto adicional
-                        let newPriceValue = priceValue + additionalAmount; // Aplica el incremento del descuento
-                        let formattedPrice = formatCurrencyValue(newPriceValue, currency);
-                        let originalFormattedPrice = formatCurrencyValue(priceValue, currency);
-
-                        priceElement.innerHTML = `
-                    <div class="precio-normal">${text1}&nbsp;<span style="text-decoration: line-through;">${formattedPrice}</span></div>
-                    <div class="precio-original">${originalFormattedPrice} <img src="https://assets-us-01.kc-usercontent.com/b2956330-c34f-0064-2c6f-27bd5c0147fc/f5b249fe-122d-468c-bb23-b87819ce067d/%25descuento.png" id="newIconoPC"></div>
-                `;
-                        priceElement.id = `modificado-${index}`;
+                        priceElement.id = `modificado-${bookId}`;
                     }
                 });
             }
         }
     }
 
-    if (haveDiscountIda || haveDiscountVuelta) {
+    function isCNX() {
+        const hasOutboundConnected = bookingData.AvailableOutboundJourneys.some(journey => journey.IsConnectedFlight === true);
+        const hasReturnConnected = bookingData.AvailableReturnJourneys?.some(journey => journey.IsConnectedFlight === true) || false;
+
+        return hasOutboundConnected || hasReturnConnected;
+    }
+
+    if ((haveDiscountIda || haveDiscountVuelta) && !isCNX() && role === 'WWW Anonymous') {
         addCSS();
+        addIndex();
         let currency = getCurrentCurrency();
         updatePrices(currency);
         window.eventBus.subscribe({
             name: "newPC",
             callback: function (e) {
+                addIndex();
                 setTimeout(function () {
                     let currency = getCurrentCurrency();
-                    console.log(currency);
                     updatePrices(currency);
                 }, 1000);
             }
